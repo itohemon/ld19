@@ -11,24 +11,23 @@
 
 int main(int argc , char **argv)
 {
+	std::string port_name;
+	std::string lidar_topic;
+
 	ros::init(argc, argv, "product");
 	ros::NodeHandle nh;                    /* create a ROS Node */
+	ros::NodeHandle pnh("~");
+	pnh.getParam("usb_port", port_name);
+	pnh.getParam("lidar_topic", lidar_topic);
 
+	ROS_INFO("[%s] param: %s",
+		ros::this_node::getName().c_str(), port_name.c_str());
+	ROS_INFO("[%s] param: %s",
+		ros::this_node::getName().c_str(), lidar_topic.c_str());
  	
 	LiPkg * lidar = new LiPkg;
   
     CmdInterfaceLinux cmd_port;
-    std::vector<std::pair<std::string, std::string> > device_list;
-    std::string port_name;
-    cmd_port.GetCmdDevices(device_list);
-    for (auto n : device_list)
-    {
-        std::cout << n.first << "    " << n.second << std::endl;
-        if(strstr(n.second.c_str(),"CP2102"))
-        {
-            port_name = n.first;
-        }
-    }
 
 	if(port_name.empty())
 	{
@@ -46,7 +45,7 @@ int main(int argc , char **argv)
 	if(cmd_port.Open(port_name))
 		std::cout<<"LiDAR_LD19 started successfully "  <<std::endl;
 	
-	ros::Publisher lidar_pub = nh.advertise<sensor_msgs::LaserScan>("LiDAR/LD19", 1); /*create a ROS topic */
+	ros::Publisher lidar_pub = nh.advertise<sensor_msgs::LaserScan>(lidar_topic.c_str(), 1); /*create a ROS topic */
 	
 	while (ros::ok())
 	{
@@ -54,7 +53,7 @@ int main(int argc , char **argv)
 		{
 			lidar_pub.publish(lidar->GetLaserScan());  // Fixed Frame:  lidar_frame
 			lidar->ResetFrameReady();
-#if 1 
+#if 0
 			sensor_msgs::LaserScan data = lidar->GetLaserScan();
 			unsigned int lens = (data.angle_max - data.angle_min) / data.angle_increment;  
 			std::cout << "current_speed: " << lidar->GetSpeed() << " " 

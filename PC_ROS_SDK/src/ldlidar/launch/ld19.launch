@@ -1,6 +1,8 @@
 <launch>
 
  <node name="LD19" pkg="ldlidar" type="ldlidar" args="LD19" output="screen" >
+  <param name="lidar_topic" value="scan"/>
+  <param name="usb_port" value="/dev/ttyUSB0"/>
  </node>
 
 </launch>
